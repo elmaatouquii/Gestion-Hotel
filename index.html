@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HotelOS — Gestion Hôtelière</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <span class="logo-icon">⬡</span>
+        <span class="logo-text">Hotel<strong>OS</strong></span>
+      </div>
+      <button class="sidebar-toggle" id="sidebarToggle" aria-label="Fermer menu">✕</button>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-item active" data-page="dashboard">
+        <span class="nav-icon">◈</span>
+        <span>Dashboard</span>
+      </a>
+      <a href="#" class="nav-item" data-page="rooms">
+        <span class="nav-icon">▦</span>
+        <span>Chambres</span>
+      </a>
+      <a href="#" class="nav-item" data-page="reservations">
+        <span class="nav-icon">◷</span>
+        <span>Réservations</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="theme-toggle" id="themeToggle">
+        <span id="themeIcon">◑</span>
+        <span id="themeLabel">Mode Sombre</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <div class="main-wrapper">
+    <header class="topbar">
+      <button class="hamburger" id="hamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+      <h1 class="topbar-title" id="pageTitle">Dashboard</h1>
+      <div class="topbar-actions">
+        <span class="date-badge" id="currentDate"></span>
+      </div>
+    </header>
+
+    <!-- ===== DASHBOARD PAGE ===== -->
+    <section class="page active" id="page-dashboard">
+      <div class="stats-grid">
+        <div class="stat-card" data-color="gold">
+          <div class="stat-icon">▦</div>
+          <div class="stat-info">
+            <span class="stat-label">Total Chambres</span>
+            <span class="stat-value" id="stat-total">0</span>
+          </div>
+        </div>
+        <div class="stat-card" data-color="green">
+          <div class="stat-icon">✓</div>
+          <div class="stat-info">
+            <span class="stat-label">Disponibles</span>
+            <span class="stat-value" id="stat-available">0</span>
+          </div>
+        </div>
+        <div class="stat-card" data-color="rose">
+          <div class="stat-icon">●</div>
+          <div class="stat-info">
+            <span class="stat-label">Occupées</span>
+            <span class="stat-value" id="stat-occupied">0</span>
+          </div>
+        </div>
+        <div class="stat-card" data-color="blue">
+          <div class="stat-icon">◷</div>
+          <div class="stat-info">
+            <span class="stat-label">Réservations</span>
+            <span class="stat-value" id="stat-reservations">0</span>
+          </div>
+        </div>
+        <div class="stat-card wide" data-color="dark">
+          <div class="stat-icon">◈</div>
+          <div class="stat-info">
+            <span class="stat-label">Revenus Totaux</span>
+            <span class="stat-value" id="stat-revenue">0 MAD</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="charts-grid">
+        <div class="chart-card">
+          <h3 class="chart-title">Occupation des Chambres</h3>
+          <div class="chart-wrap">
+            <canvas id="occupancyChart"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <h3 class="chart-title">Réservations Récentes</h3>
+          <div id="recentReservations" class="recent-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== ROOMS PAGE ===== -->
+    <section class="page" id="page-rooms">
+      <div class="page-header">
+        <h2 class="section-title">Gestion des Chambres</h2>
+        <button class="btn btn-primary" id="addRoomBtn">+ Ajouter Chambre</button>
+      </div>
+      <div class="table-controls">
+        <input type="search" class="search-input" id="roomSearch" placeholder="Rechercher une chambre…" />
+        <select class="filter-select" id="roomFilter">
+          <option value="">Tous les états</option>
+          <option value="disponible">Disponible</option>
+          <option value="occupée">Occupée</option>
+        </select>
+      </div>
+      <div class="table-wrapper">
+        <table class="data-table" id="roomTable">
+          <thead>
+            <tr>
+              <th data-sort="number">N° <span class="sort-icon">⇅</span></th>
+              <th data-sort="type">Type <span class="sort-icon">⇅</span></th>
+              <th data-sort="price">Prix/Nuit <span class="sort-icon">⇅</span></th>
+              <th data-sort="status">État <span class="sort-icon">⇅</span></th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="roomTableBody"></tbody>
+        </table>
+        <div class="empty-state" id="roomEmpty" style="display:none">
+          <span class="empty-icon">▦</span>
+          <p>Aucune chambre trouvée</p>
+          <button class="btn btn-primary" onclick="openRoomModal()">Ajouter la première chambre</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== RESERVATIONS PAGE ===== -->
+    <section class="page" id="page-reservations">
+      <div class="page-header">
+        <h2 class="section-title">Gestion des Réservations</h2>
+        <button class="btn btn-primary" id="addReservationBtn">+ Nouvelle Réservation</button>
+      </div>
+      <div class="table-controls">
+        <input type="search" class="search-input" id="resSearch" placeholder="Rechercher client ou chambre…" />
+        <select class="filter-select" id="resFilter">
+          <option value="">Toutes les réservations</option>
+          <option value="active">Actives</option>
+          <option value="past">Passées</option>
+        </select>
+      </div>
+      <div class="table-wrapper">
+        <table class="data-table" id="resTable">
+          <thead>
+            <tr>
+              <th>Client</th>
+              <th data-sort="roomNumber">Chambre <span class="sort-icon">⇅</span></th>
+              <th data-sort="checkIn">Arrivée <span class="sort-icon">⇅</span></th>
+              <th data-sort="checkOut">Départ <span class="sort-icon">⇅</span></th>
+              <th data-sort="total">Total <span class="sort-icon">⇅</span></th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="resTableBody"></tbody>
+        </table>
+        <div class="empty-state" id="resEmpty" style="display:none">
+          <span class="empty-icon">◷</span>
+          <p>Aucune réservation trouvée</p>
+          <button class="btn btn-primary" onclick="openReservationModal()">Créer une réservation</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ===== MODAL CHAMBRE ===== -->
+  <div class="modal-overlay" id="roomModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="roomModalTitle">Ajouter une Chambre</h3>
+        <button class="modal-close" onclick="closeModal('roomModal')">✕</button>
+      </div>
+      <form id="roomForm" class="modal-form" novalidate>
+        <input type="hidden" id="roomId" />
+        <div class="form-group">
+          <label for="roomNumber">Numéro de Chambre *</label>
+          <input type="number" id="roomNumber" placeholder="Ex: 101" required min="1" />
+          <span class="field-error" id="err-roomNumber"></span>
+        </div>
+        <div class="form-group">
+          <label for="roomType">Type *</label>
+          <select id="roomType" required>
+            <option value="">Sélectionner…</option>
+            <option value="Simple">Simple</option>
+            <option value="Double">Double</option>
+            <option value="Suite">Suite</option>
+            <option value="Deluxe">Deluxe</option>
+            <option value="Présidentielle">Présidentielle</option>
+          </select>
+          <span class="field-error" id="err-roomType"></span>
+        </div>
+        <div class="form-group">
+          <label for="roomPrice">Prix par Nuit (MAD) *</label>
+          <input type="number" id="roomPrice" placeholder="Ex: 500" required min="1" />
+          <span class="field-error" id="err-roomPrice"></span>
+        </div>
+        <div class="form-group">
+          <label for="roomStatus">État *</label>
+          <select id="roomStatus" required>
+            <option value="disponible">Disponible</option>
+            <option value="occupée">Occupée</option>
+          </select>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('roomModal')">Annuler</button>
+          <button type="submit" class="btn btn-primary" id="roomSubmitBtn">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== MODAL RÉSERVATION ===== -->
+  <div class="modal-overlay" id="reservationModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="resModalTitle">Nouvelle Réservation</h3>
+        <button class="modal-close" onclick="closeModal('reservationModal')">✕</button>
+      </div>
+      <form id="resForm" class="modal-form" novalidate>
+        <input type="hidden" id="resId" />
+        <div class="form-group">
+          <label for="clientName">Nom du Client *</label>
+          <input type="text" id="clientName" placeholder="Ex: Ahmed Benali" required />
+          <span class="field-error" id="err-clientName"></span>
+        </div>
+        <div class="form-group">
+          <label for="resRoom">Chambre *</label>
+          <select id="resRoom" required>
+            <option value="">Sélectionner une chambre…</option>
+          </select>
+          <span class="field-error" id="err-resRoom"></span>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="checkIn">Date d'Arrivée *</label>
+            <input type="date" id="checkIn" required />
+            <span class="field-error" id="err-checkIn"></span>
+          </div>
+          <div class="form-group">
+            <label for="checkOut">Date de Départ *</label>
+            <input type="date" id="checkOut" required />
+            <span class="field-error" id="err-checkOut"></span>
+          </div>
+        </div>
+        <div class="price-preview" id="pricePreview" style="display:none">
+          <span class="price-label">Total estimé</span>
+          <span class="price-value" id="previewAmount">0 MAD</span>
+          <span class="price-detail" id="previewDetail"></span>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('reservationModal')">Annuler</button>
+          <button type="submit" class="btn btn-primary" id="resSubmitBtn">Réserver</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== CONFIRM MODAL ===== -->
+  <div class="modal-overlay" id="confirmModal">
+    <div class="modal modal-sm">
+      <div class="modal-header">
+        <h3>Confirmer la suppression</h3>
+        <button class="modal-close" onclick="closeModal('confirmModal')">✕</button>
+      </div>
+      <p class="confirm-text" id="confirmText">Voulez-vous vraiment supprimer cet élément ?</p>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModal('confirmModal')">Annuler</button>
+        <button class="btn btn-danger" id="confirmBtn">Supprimer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TOAST ===== -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
